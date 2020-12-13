@@ -10,7 +10,7 @@ vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, np.array(img).sh
 eroded_image = cv2.erode(img_bin_otsu, vertical_kernel, iterations=3)
 vertical_lines = cv2.dilate(eroded_image, vertical_kernel, iterations=3)
 hor_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (np.array(img).shape[1]//100, 1))
-horizontal_lines = cv2.erode(img_bin, hor_kernel, iterations=5)
+horizontal_lines = cv2.erode(img_bin_otsu, hor_kernel, iterations=5)
 horizontal_lines = cv2.dilate(horizontal_lines, hor_kernel, iterations=5)
 vertical_horizontal_lines = cv2.addWeighted(vertical_lines, 0.5, horizontal_lines, 0.5, 0.0)
 vertical_horizontal_lines = cv2.erode(~vertical_horizontal_lines, kernel, iterations=3)
@@ -18,6 +18,7 @@ thresh, vertical_horizontal_lines = cv2.threshold(vertical_horizontal_lines,128,
 bitxor = cv2.bitwise_xor(img,vertical_horizontal_lines)
 bitnot = cv2.bitwise_not(bitxor)
 import pytesseract
+contours, hierarchy = cv2.findContours(vertical_horizontal_lines, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 boundingBoxes = [cv2.boundingRect(contour) for contour in contours]
 (contours, boundingBoxes) = zip(*sorted(zip(contours, boundingBoxes),key=lambda x:x[1][1]))
 boxes = []
@@ -94,6 +95,7 @@ for i in range(len(boxes_list)):
                 s = s +" "+ out
             dataframe_final.append(s)
 print(dataframe_final)
+arr = np.array(dataframe_final)
 import pandas as pd
 dataframe = pd.DataFrame(arr.reshape(len(rows), total_cells))
 data = dataframe.style.set_properties(align="left")
@@ -105,4 +107,4 @@ for i in range(0,len(rows)):
     print(dataframe[i][j],end=" ")
   print()
 print(dataframe)
-dataframe.to_csv("output1.csv")
+dataframe.to_csv("output1.csv",encoding="utf-8-sig")
